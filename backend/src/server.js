@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -11,17 +12,11 @@ const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
 // Route imports
 const authRoutes = require('./routes/auth');
 const campaignRoutes = require('./routes/campaigns');
-const contactRoutes = require("./routes/contacts");
-// console.log("auth",authRoutes)
-// console.log("campaign",campaignRoutes)
-// console.log("contact",contactRoutes)
+const contactRoutes = require('./routes/contacts');
 
+const emailService = require('./services/emailService');
 
-// Initialize Express app
 const app = express();
-
-// Connect to database
-connectDatabase();
 
 // Security middleware
 app.use(helmet({
@@ -36,14 +31,9 @@ const corsOptions = {
       'http://localhost:3000',
       'http://127.0.0.1:3000'
     ];
-    
     if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    if (allowedOrigins.includes(origin)) callback(null, true);
+    else callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -77,13 +67,13 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// API Routes
+// Mount routes (safe to mount before init; server will start after init)
 app.use('/api/auth', authRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/contacts', contactRoutes);
 
 // Handle undefined routes
-app.use( (req, res) => {
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: `Route ${req.originalUrl} not found`
@@ -93,49 +83,79 @@ app.use( (req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
-// Start server
+// STARTUP: connect DB, init emailService, then start server
 const PORT = process.env.PORT || 5000;
+let server = null;
 
-const server = app.listen(PORT, () => {
-  console.log(`
+async function startServer() {
+  try {
+    // 1) Connect database (await if it returns a promise)
+    await connectDatabase();
+
+    // 2) Initialize email service (await so transporter is ready before serving requests)
+    try {
+      await emailService.init();
+      console.log('📧 Email service initialized (ready to send).');
+    } catch (err) {
+      // don't crash the whole server on email init failure — warn and continue
+      console.warn('⚠️ Email service failed to initialize. Test/send endpoints may fail until fixed.');
+      console.warn(err && err.message ? err.message : err);
+    }
+
+    // 3) Start listening
+    server = app.listen(PORT, () => {
+      console.log(`
 🚀 MailFlow API Server is running!
 📍 Environment: ${process.env.NODE_ENV || 'development'}
 🌐 Port: ${PORT}
 🔗 API Base: http://localhost:${PORT}/api
 📊 Health Check: http://localhost:${PORT}/api/health
-📧 Email Service: ${process.env.EMAIL_HOST ? '✅ Configured' : '❌ Not configured'}
-🗄️  Database: ${process.env.MONGODB_URI ? '✅ Connected' : '❌ Not connected'}
-  `);
-});
+📧 Email Service: ${process.env.EMAIL_HOST ? '✅ Configured' : '❌ Not configured (using Ethereal fallback if available)'}
+🗄️  Database: ${process.env.MONGODB_URI ? '✅ Connected' : '❌ Not connected (check logs)'}
+      `);
+    });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-  console.error('Unhandled Promise Rejection:', err.message);
-  server.close(() => {
+  } catch (err) {
+    console.error('Fatal startup error:', err);
     process.exit(1);
-  });
+  }
+}
+
+// Start it
+startServer();
+
+// Graceful shutdown & error handling (unchanged)
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Promise Rejection:', err && err.message ? err.message : err);
+  if (server) {
+    server.close(() => process.exit(1));
+  } else {
+    process.exit(1);
+  }
 });
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err.message);
-  console.error(err.stack);
+  console.error('Uncaught Exception:', err && err.message ? err.message : err);
+  console.error(err && err.stack ? err.stack : '');
   process.exit(1);
 });
 
-// Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received. Shutting down gracefully...');
-  server.close(() => {
-    console.log('Process terminated');
-  });
+  if (server) {
+    server.close(() => console.log('Process terminated'));
+  } else {
+    process.exit(0);
+  }
 });
 
 process.on('SIGINT', () => {
   console.log('SIGINT received. Shutting down gracefully...');
-  server.close(() => {
-    console.log('Process terminated');
-  });
+  if (server) {
+    server.close(() => console.log('Process terminated'));
+  } else {
+    process.exit(0);
+  }
 });
 
 module.exports = app;

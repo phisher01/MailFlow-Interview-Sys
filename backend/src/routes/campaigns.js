@@ -62,6 +62,35 @@ router.post('/:id/send', async (req, res) => {
   }
 });
 
+
+// NEW: Send preview test email (without campaign ID)
+router.post('/preview/test', async (req, res) => {
+  try {
+    const { email, subject, content } = req.body;
+    
+    if (!email || !subject || !content) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email, subject, and content are required'
+      });
+    }
+
+    // Send preview test email
+    await emailService.sendTestEmail(email, `[PREVIEW] ${subject}`, content);
+    
+    res.json({
+      success: true,
+      message: 'Preview test email sent successfully'
+    });
+
+  } catch (error) {
+    console.error('Send preview test email error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error sending preview test email'
+    });
+  }
+});
 // FIXED: Send test email route
 router.post('/:id/test', async (req, res) => {
   try {
@@ -101,35 +130,6 @@ router.post('/:id/test', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error sending test email'
-    });
-  }
-});
-
-// NEW: Send preview test email (without campaign ID)
-router.post('/preview/test', async (req, res) => {
-  try {
-    const { email, subject, content } = req.body;
-    
-    if (!email || !subject || !content) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email, subject, and content are required'
-      });
-    }
-
-    // Send preview test email
-    await emailService.sendTestEmail(email, `[PREVIEW] ${subject}`, content);
-    
-    res.json({
-      success: true,
-      message: 'Preview test email sent successfully'
-    });
-
-  } catch (error) {
-    console.error('Send preview test email error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error sending preview test email'
     });
   }
 });

@@ -71,6 +71,18 @@ export const campaignService = {
       throw error;
     }
   },
+  sendPreviewTestEmail: async (email, subject, content) => {
+  try {
+    const response = await api.post('/campaigns/preview/test', {
+      email,
+      subject,
+      content,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+},
 
   // Get dashboard stats
   getDashboardStats: async () => {
