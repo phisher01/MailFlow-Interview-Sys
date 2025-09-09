@@ -8,20 +8,14 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "keywords": [
-    "react",
-    "email",
-    "marketing",
-    "mailflow",
-    "mui"
-  ],
+  "keywords": ["react", "email", "marketing", "mailflow", "mui"],
   "author": "Gagan Singh",
   "license": "MIT",
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^5.18.0",
-    "@mui/material": "^5.18.0",
+    "@mui/material": "^5.15.15",
+    "@mui/icons-material": "^5.15.15",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.0",
     "axios": "^1.11.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -29,6 +23,6 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.0.2",
-    "vite": "^7.1.5"
+    "vite": "^7.1.4"
   }
 }
