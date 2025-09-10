@@ -134,6 +134,9 @@ class EmailService {
     let sentCount = 0;
     let errorCount = 0;
     const errors = [];
+    if(contacts.length===0){
+      throw new Error ('Ooops! No contacts to send mails!')    }
+      
 
     for (const contact of contacts) {
       try {

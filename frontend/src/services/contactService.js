@@ -2,17 +2,17 @@ import api from './api';
 
 export const contactService = {
   // Get all contacts
-  getContacts: async (params = {}) => {
+  
+   getContacts: async () => {
     try {
-      const queryParams = new URLSearchParams(params).toString();
-      const response = await api.get(`/contacts?${queryParams}`);
+      const response = await api.get('/contacts'); // Just fetch all contacts
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Create contact
+  // Create a new contact
   createContact: async (contactData) => {
     try {
       const response = await api.post('/contacts', contactData);

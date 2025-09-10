@@ -1,7 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 const {
-  getContacts,
+  getAllContacts,
   createContact,
   updateContact,
   deleteContact,
@@ -33,7 +33,7 @@ const contactValidation = [
 router.use(authenticate);
 
 // Routes
-router.get('/', getContacts);
+router.get('/', getAllContacts);
 router.post('/', contactValidation, createContact);
 router.put('/:id', contactValidation, updateContact);
 router.delete('/:id', deleteContact);

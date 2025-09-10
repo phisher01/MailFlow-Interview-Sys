@@ -4,7 +4,6 @@ const contactSchema = new mongoose.Schema({
   email: {
     type: String,
     required: [true, 'Email is required'],
-    unique: true,
     lowercase: true,
     trim: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
@@ -66,13 +65,15 @@ const contactSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes for better performance
-contactSchema.index({ email: 1 });
+// ✅ Compound unique index so each user can only have one contact per email
+contactSchema.index({ createdBy: 1, email: 1 }, { unique: true });
+
+// Extra helpful indexes
 contactSchema.index({ createdBy: 1, status: 1 });
 contactSchema.index({ tags: 1 });
 
 // Virtual for full name
-contactSchema.virtual('fullName').get(function() {
+contactSchema.virtual('fullName').get(function () {
   return `${this.firstName || ''} ${this.lastName || ''}`.trim();
 });
 

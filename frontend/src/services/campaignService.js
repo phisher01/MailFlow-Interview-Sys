@@ -63,16 +63,20 @@ export const campaignService = {
   },
 
   // Send test email
-  sendTestEmail: async (id, email) => {
-    try {
-      const response = await api.post(`/campaigns/${id}/test`, { email });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
+  // sendTestEmail: async (id, email) => {
+  //   try {
+  //     const response = await api.post(`/campaigns/${id}/test`, { email });
+  //     return response.data;
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // },
+  
   sendPreviewTestEmail: async (email, subject, content) => {
   try {
+  console.log("here")
+
+
     const response = await api.post('/campaigns/preview/test', {
       email,
       subject,

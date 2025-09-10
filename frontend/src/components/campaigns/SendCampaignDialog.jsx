@@ -66,24 +66,25 @@ const SendCampaignDialog = ({ open, onClose, campaign, onSuccess }) => {
   };
 
  const handleSendTest = async () => {
-  if (!testEmail || !campaign) return;
-
-  try {
-    setLoading(true);
-    await campaignService.sendPreviewTestEmail(
-      testEmail.trim(),
-      campaign.subject,
-      campaign.content
-    );
-    alert('Test email sent successfully!');
-  } catch (err) {
-    setError('Failed to send test email');
-  } finally {
-    setLoading(false);
-  }
-};
-
-
+   if (!testEmail || !campaign) return;
+   
+   try {
+     setLoading(true);
+     await campaignService.sendPreviewTestEmail(
+       testEmail.trim(),
+       campaign.subject,
+       campaign.content
+      );
+      alert('Test email sent successfully!');
+    } catch (err) {
+      setError('Failed to send test email');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
+  
   const handleSendCampaign = async () => {
     try {
       setLoading(true);

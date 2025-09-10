@@ -4,42 +4,14 @@ const Contact = require('../models/Contact');
 // @desc    Get all contacts for user
 // @route   GET /api/contacts
 // @access  Private
-const getContacts = async (req, res) => {
+const getAllContacts = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    const status = req.query.status;
-    const search = req.query.search;
-
-    const query = { createdBy: req.user._id };
-    
-    if (status) query.status = status;
-    
-    if (search) {
-      query.$or = [
-        { email: { $regex: search, $options: 'i' } },
-        { firstName: { $regex: search, $options: 'i' } },
-        { lastName: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    const contacts = await Contact.find(query)
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Contact.countDocuments(query);
+    const contacts = await Contact.find({ createdBy: req.user._id }).sort({ createdAt: -1 });
 
     res.json({
       success: true,
-      data: contacts,
-      pagination: {
-        current: page,
-        pages: Math.ceil(total / limit),
-        total
-      }
+      data: contacts
     });
-
   } catch (error) {
     console.error('Get contacts error:', error);
     res.status(500).json({
@@ -49,6 +21,7 @@ const getContacts = async (req, res) => {
   }
 };
 
+    
 // @desc    Create new contact
 // @route   POST /api/contacts
 // @access  Private
@@ -72,7 +45,8 @@ const createContact = async (req, res) => {
     });
 
     if (existingContact) {
-      return res.status(400).json({
+      console.log('Exising constact found');
+            return res.status(400).json({
         success: false,
         message: 'Contact with this email already exists'
       });
@@ -246,7 +220,7 @@ const importContacts = async (req, res) => {
 };
 
 module.exports = {
-  getContacts,
+  getAllContacts,
   createContact,
   updateContact,
   deleteContact,

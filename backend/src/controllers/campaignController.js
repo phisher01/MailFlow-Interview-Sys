@@ -78,6 +78,8 @@ const getCampaign = async (req, res) => {
 // @desc    Create new campaign
 // @route   POST /api/campaigns
 // @access  Private
+
+
 const createCampaign = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -89,13 +91,24 @@ const createCampaign = async (req, res) => {
       });
     }
 
-    const { name, subject, content, type } = req.body;
+    const { name, subject, content, type, scheduledAt } = req.body;
+
+    // Fetch all contacts of this user
+    const contacts = await Contact.find({ owner: req.user._id });
+
+    const recipients = contacts.map(contact => ({
+      email: contact.email,
+      name: contact.name || '',
+      status: 'pending'
+    }));
 
     const campaign = new Campaign({
       name,
       subject,
       content,
       type: type || 'one-time',
+      scheduledAt: scheduledAt || null,
+      recipients,
       createdBy: req.user._id
     });
 
@@ -103,7 +116,7 @@ const createCampaign = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Campaign created successfully',
+      message: 'Campaign created successfully with all your contacts as recipients',
       data: campaign
     });
 

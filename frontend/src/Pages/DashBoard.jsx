@@ -30,6 +30,10 @@ import {
 import Mail from '@mui/icons-material/Mail';
 import People from '@mui/icons-material/People';
 import BarChart from '@mui/icons-material/BarChart';
+
+import ContactsList from './ContactsList';
+
+
 import Add from '@mui/icons-material/Add';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
@@ -52,7 +56,12 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [contactsDialogOpen, setContactsDialogOpen] = useState(false);
+
   const [createCampaignOpen, setCreateCampaignOpen] = useState(false);
+  
+  
+
 
   useEffect(() => {
     loadDashboardData();
@@ -73,7 +82,7 @@ const Dashboard = () => {
       }
 
       if (campaignsResponse.success) {
-        setRecentCampaigns(campaignsResponse.data);
+        setRecentCampaigns(campaignsResponse.data); 
       }
 
     } catch (err) {
@@ -353,9 +362,16 @@ const Dashboard = () => {
                   >
                     Create New Campaign
                   </Button>
-                  <Button variant="outlined" fullWidth startIcon={<People />} sx={{ py: 1.5 }}>
-                    Manage Contacts
-                  </Button>
+                  <Button
+  variant="outlined"
+  fullWidth
+  startIcon={<People />}
+  sx={{ py: 1.5 }}
+  onClick={() => setContactsDialogOpen(true)} // open dialog
+>
+  Manage Contacts
+</Button>
+
                   <Button variant="outlined" fullWidth startIcon={<BarChart />} sx={{ py: 1.5 }}>
                     View Analytics
                   </Button>
@@ -410,59 +426,92 @@ const Dashboard = () => {
                           <TableCell align="right">Clicks</TableCell>
                         </TableRow>
                       </TableHead>
-                      <TableBody>
-                        {recentCampaigns.map((campaign) => (
-                          <TableRow key={campaign._id} hover>
-                            <TableCell>
-                              <Box>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                  {campaign.name}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  {campaign.type} • {formatDate(campaign.createdAt)}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Chip
-                                label={campaign.status}
-                                color={getStatusColor(campaign.status)}
-                                size="small"
-                                sx={{ textTransform: 'capitalize' }}
-                              />
-                            </TableCell>
-                            <TableCell align="right">
-                              <Typography variant="body2">
-                                {campaign.analytics.sent.toLocaleString()}
-                              </Typography>
-                            </TableCell>
-                            <TableCell align="right">
-                              <Box>
-                                <Typography variant="body2">
-                                  {campaign.analytics.opens}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  {campaign.analytics.sent > 0
-                                    ? ((campaign.analytics.opens / campaign.analytics.sent) * 100).toFixed(1)
-                                    : 0}%
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell align="right">
-                              <Box>
-                                <Typography variant="body2">
-                                  {campaign.analytics.clicks}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  {campaign.analytics.sent > 0
-                                    ? ((campaign.analytics.clicks / campaign.analytics.sent) * 100).toFixed(1)
-                                    : 0}%
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
+                     <TableBody>
+  {recentCampaigns.map((campaign) => (
+    <TableRow key={campaign._id} hover>
+      <TableCell>
+        <Box>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {campaign.name}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {campaign.type} • {formatDate(campaign.createdAt)}
+          </Typography>
+        </Box>
+      </TableCell>
+      <TableCell>
+        <Chip
+          label={campaign.status}
+          color={getStatusColor(campaign.status)}
+          size="small"
+          sx={{ textTransform: 'capitalize' }}
+        />
+      </TableCell>
+      <TableCell align="right">
+        <Typography variant="body2">
+          {campaign.analytics.sent.toLocaleString()}
+        </Typography>
+      </TableCell>
+      <TableCell align="right">
+        <Box>
+          <Typography variant="body2">
+            {campaign.analytics.opens}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {campaign.analytics.sent > 0
+              ? ((campaign.analytics.opens / campaign.analytics.sent) * 100).toFixed(1)
+              : 0}%
+          </Typography>
+        </Box>
+      </TableCell>
+      <TableCell align="right">
+        <Box>
+          <Typography variant="body2">
+            {campaign.analytics.clicks}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {campaign.analytics.sent > 0
+              ? ((campaign.analytics.clicks / campaign.analytics.sent) * 100).toFixed(1)
+              : 0}%
+          </Typography>
+        </Box>
+      </TableCell>
+
+      {/* New Action Column */}
+      <TableCell align="right">
+       <Button
+  variant="contained"
+  size="small"
+  onClick={async () => {
+    try {
+      const res = await campaignService.sendCampaign(campaign._id);
+      alert(`✅ ${res.message}`);
+      
+      // Update local state so status changes immediately
+      setRecentCampaigns((prev) =>
+        prev.map((c) =>
+          c._id === campaign._id
+            ? { ...c, status: "sent", sentAt: new Date().toISOString() }
+            : c
+        )
+      );
+    } catch (error) {
+      alert(
+        `❌ Failed to send: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+    }
+  }}
+>
+  Send
+</Button>
+
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
+
                     </Table>
                   </TableContainer>
                 ) : (
@@ -533,7 +582,18 @@ const Dashboard = () => {
         onClose={() => setCreateCampaignOpen(false)}
         onSuccess={loadDashboardData}
       />
-    </Box>
+    {/* Contacts Dialog */}
+<Dialog
+  open={contactsDialogOpen}
+  onClose={() => setContactsDialogOpen(false)}
+  fullWidth
+  maxWidth="md"
+>
+  <ContactsList />
+</Dialog>
+  </Box>
+
+    
   );
 };
 
