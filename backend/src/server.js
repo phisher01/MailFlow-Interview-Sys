@@ -1,15 +1,16 @@
 // server.js
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-require('dotenv').config();
 
 const connectDatabase = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
 const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
 
 // Route imports
+const aiRoutes =require("./routes/aiRoutes.js");
 const authRoutes = require('./routes/auth');
 const campaignRoutes = require('./routes/campaigns');
 const contactRoutes = require('./routes/contacts');
@@ -71,6 +72,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/contacts', contactRoutes);
+app.use("/api/ai", aiRoutes);
+
 
 // Handle undefined routes
 app.use((req, res) => {
@@ -107,6 +110,7 @@ async function startServer() {
       console.log(`
 🚀 MailFlow API Server is running!
 📍 Environment: ${process.env.NODE_ENV || 'development'}
+AI_API_KEY:${process.env.COHERE_API_KEY}
 🌐 Port: ${PORT}
 🔗 API Base: http://localhost:${PORT}/api
 📊 Health Check: http://localhost:${PORT}/api/health
