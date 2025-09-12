@@ -8,7 +8,7 @@ import { AuthProvider } from './hooks/useAuth';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
-import Dashboard from './pages/DashBoard';
+import Dashboard from './Pages/DashBoard';
 import './styles/globals.css';
 
 function App() {
