@@ -16,6 +16,10 @@ const campaignRoutes = require('./routes/campaigns');
 const contactRoutes = require('./routes/contacts');
 
 const emailService = require('./services/emailService');
+const {queryModel} = require('./services/aiService');
+
+
+
 
 const app = express();
 

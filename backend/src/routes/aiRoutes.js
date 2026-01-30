@@ -7,6 +7,7 @@ const router = express.Router();
 router.post('/subject', async (req, res) => {
   const { topic } = req.body;
   const subject = await ai.generateSubject(topic);
+  console.log("Generated Subject in route:", subject);
   res.json({ success: true, subject });
 });
 
