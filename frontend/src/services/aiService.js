@@ -4,6 +4,7 @@ export const aiService = {
   getSubjectSuggestions: async (topic) => {
     try {
       const res = await api.post("/ai/subject", { topic });
+      console.log("AI Subject Response:", res.data);
       // ✅ Always return a single string
       return res.data.subject || '';
     } catch (err) {

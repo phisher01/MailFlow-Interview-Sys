@@ -56,6 +56,8 @@ const handleAISubject = async () => {
   try {
     setAiLoading(true);
     setError('');
+    console.log("clicked")
+
     const subject = await aiService.getSubjectSuggestions(formData.name);
     console.log(subject);
     if (subject) {
@@ -70,6 +72,7 @@ const handleAISubject = async () => {
 
 
   const handleAIContent = async () => {
+    console.log("clicked")
     if (!formData.name.trim()) {
       setError("Enter a campaign name to generate content");
       return;
