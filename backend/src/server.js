@@ -29,16 +29,19 @@ app.use(helmet({
 }));
 
 // CORS configuration
+// normalize so trailing slashes / case differences can't break the match
+const normalizeOrigin = (url) => (url || '').trim().replace(/\/+$/, '').toLowerCase();
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
-      process.env.FRONTEND_URL || 'http://localhost:3000',
+      normalizeOrigin(process.env.FRONTEND_URL) || 'http://localhost:3000',
       'http://localhost:3000',
       'http://127.0.0.1:3000'
     ];
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) callback(null, true);
-    else callback(new Error('Not allowed by CORS'));
+    if (allowedOrigins.includes(normalizeOrigin(origin))) return callback(null, true);
+    console.warn(`CORS blocked origin: ${origin} (allowed: ${allowedOrigins.join(', ')})`);
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
