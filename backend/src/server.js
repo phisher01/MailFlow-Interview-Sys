@@ -61,6 +61,16 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/api/', apiLimiter);
 app.use('/api/auth/', authLimiter);
 
+// Root route — friendly landing response for anyone opening the base URL
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Welcome to the MailFlow API 📧',
+    health: '/api/health',
+    endpoints: ['/api/auth', '/api/campaigns', '/api/contacts', '/api/ai']
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
