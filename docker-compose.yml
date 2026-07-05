@@ -1,0 +1,34 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # No host port published — the backend reaches Mongo on the internal
+    # compose network. Uncomment to inspect the DB from your machine
+    # (27018 avoids clashing with a local MongoDB service on 27017):
+    # ports:
+    #   - "27018:27017"
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    environment:
+      # Inside compose, Mongo's hostname is the service name "mongo" —
+      # this overrides the localhost URI from .env
+      MONGODB_URI: mongodb://mongo:27017/mailflow
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongo-data:
