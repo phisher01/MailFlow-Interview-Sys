@@ -17,11 +17,13 @@ export const aiService = {
   getEmailContent: async (topic) => {
     try {
       const res = await api.post("/ai/content", { topic });
-      // ✅ Always return a single string
-      return res.data.content || '';
+      const content = res.data.content;
+      // ✅ Backend returns { html, text }; tolerate a plain string too
+      if (typeof content === 'string') return { html: content, text: content };
+      return content || { html: '', text: '' };
     } catch (err) {
       console.error("AI content generation failed:", err);
-      return '';
+      return { html: '', text: '' };
     }
   }
 };

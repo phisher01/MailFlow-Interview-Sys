@@ -25,15 +25,53 @@
       }
     }
 
+    // Replace {{firstName}} / {{lastName}} / {{fullName}} / {{email}} merge tags
+    personalize(str, contact) {
+      if (!str) return str;
+      const firstName = contact.firstName || 'there';
+      const lastName = contact.lastName || '';
+      const fullName = [contact.firstName, contact.lastName].filter(Boolean).join(' ') || 'there';
+      return str
+        .replace(/\{\{\s*firstName\s*\}\}/g, firstName)
+        .replace(/\{\{\s*lastName\s*\}\}/g, lastName)
+        .replace(/\{\{\s*fullName\s*\}\}/g, fullName)
+        .replace(/\{\{\s*email\s*\}\}/g, contact.email || '');
+    }
+
     async sendSingleEmail(campaign, contact) {
       await this.ensureReady();
-      return await this.resend.emails.send({
+      const result = await this.resend.emails.send({
         from: process.env.EMAIL_FROM,
         to: contact.email,
-        subject: campaign.subject,
-        html: campaign.content?.html || '',
-        text: campaign.content?.text || '',
+        subject: this.personalize(campaign.subject, contact),
+        html: this.personalize(campaign.content?.html || '', contact),
+        text: this.personalize(campaign.content?.text || '', contact),
       });
+      // Resend SDK returns { data, error } instead of throwing
+      if (result?.error) {
+        throw new Error(result.error.message || 'Resend rejected the email');
+      }
+      return result;
+    }
+
+    async sendTestEmail(to, subject, content) {
+      await this.ensureReady();
+      // content may be a plain HTML string or a { html, text } object
+      const html = typeof content === 'string' ? content : content?.html || '';
+      const text = typeof content === 'string' ? '' : content?.text || '';
+      // fill merge tags with sample values so test emails don't show raw {{tags}}
+      const sampleContact = { firstName: 'Test', lastName: 'User', email: to };
+      const result = await this.resend.emails.send({
+        from: process.env.EMAIL_FROM,
+        to,
+        subject: this.personalize(subject, sampleContact),
+        html: this.personalize(html, sampleContact),
+        text: this.personalize(text, sampleContact),
+      });
+      if (result?.error) {
+        throw new Error(result.error.message || 'Resend rejected the email');
+      }
+      return result;
     }
 
     async sendCampaign(campaignId) {

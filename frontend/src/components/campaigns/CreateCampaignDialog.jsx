@@ -81,10 +81,12 @@ const handleAISubject = async () => {
       setAiLoading(true);
       setError('');
       const content = await aiService.getEmailContent(formData.name);
-      setFormData(prev => ({
-        ...prev,
-        content: { ...prev.content, html: content }
-      }));
+      if (content.html) {
+        setFormData(prev => ({
+          ...prev,
+          content: { ...prev.content, html: content.html, text: content.text }
+        }));
+      }
     } catch (err) {
       setError("AI content generation failed");
     } finally {

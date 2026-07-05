@@ -114,11 +114,11 @@ async function startServer() {
       console.log(`
 🚀 MailFlow API Server is running!
 📍 Environment: ${process.env.NODE_ENV || 'development'}
-AI_API_KEY:${process.env.COHERE_API_KEY}
 🌐 Port: ${PORT}
 🔗 API Base: http://localhost:${PORT}/api
 📊 Health Check: http://localhost:${PORT}/api/health
-📧 Email Service: ${process.env.EMAIL_HOST ? '✅ Configured' : '❌ Not configured (using Ethereal fallback if available)'}
+🤖 AI Service (Hugging Face): ${process.env.HF_API_KEY && process.env.HF_API_KEY !== 'your-huggingface-token-here' ? '✅ Configured' : '❌ Not configured (set HF_API_KEY in .env)'}
+📧 Email Service (Resend): ${process.env.RESEND_API_KEY ? '✅ Configured' : '❌ Not configured (set RESEND_API_KEY in .env)'}
 🗄️  Database: ${process.env.MONGODB_URI ? '✅ Connected' : '❌ Not connected (check logs)'}
       `);
     });

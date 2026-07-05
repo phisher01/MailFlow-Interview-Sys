@@ -87,7 +87,7 @@ router.post('/preview/test', async (req, res) => {
     console.error('Send preview test email error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error sending preview test email'
+      message: error.message || 'Error sending preview test email'
     });
   }
 });
@@ -129,7 +129,7 @@ router.post('/:id/test', async (req, res) => {
     console.error('Send test email error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error sending test email'
+      message: error.message || 'Error sending test email'
     });
   }
 });
